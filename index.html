@@ -3,122 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AT&T Screensaver Site</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>AT&T DVD Bounce</title>
     <style>
-        /* 1. Basic Page Styling */
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4; /* Light background for the "normal" site */
-            overflow: hidden; 
-        }
-
-        /* 2. The "Normal" Website Content */
-        #main-content {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: #000000; /* Black background */
+            overflow: hidden; /* Hides scrollbars */
             height: 100vh;
-            text-align: center;
-        }
-
-        h1 { color: #333; }
-        p { color: #666; }
-
-        /* 3. The Screensaver Overlay (Initially Hidden) */
-        #screensaver-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
             width: 100vw;
-            height: 100vh;
-            background-color: #000000; /* Classic Black Screensaver BG */
-            z-index: 9999; /* Sit on top of everything */
-            opacity: 0;
-            pointer-events: none; /* Let clicks pass through when hidden */
-            transition: opacity 0.5s ease; /* Smooth fade in/out */
         }
 
-        /* 4. The Bouncing Logo */
         #bouncing-logo {
-            position: absolute;
-            width: 200px; 
+            position: absolute; /* Allows us to move it with coordinates */
+            width: 200px; /* You can adjust the size of the logo here */
             height: auto;
-            will-change: transform;
-        }
-
-        /* Class to activate the screensaver */
-        body.screensaver-active #screensaver-layer {
-            opacity: 1;
-            pointer-events: all; /* Block clicks to the site below */
+            will-change: transform; /* Optimizes performance */
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-    <div id="main-content">
-        <div>
-            <h1>Welcome to My Page</h1>
-            <p>Stop moving your mouse for 3 seconds...</p>
-            <p>(Wait for the AT&T bounce!)</p>
-        </div>
-    </div>
-
-    <div id="screensaver-layer">
-        <img id="bouncing-logo" src="att.gif" alt="AT&T Logo">
-    </div>
+    <img id="bouncing-logo" src="att.gif" alt="AT&T Logo">
 
     <script>
-        // --- SETTINGS ---
-        const WAIT_TIME = 3000; // 3000ms = 3 seconds before screensaver starts
-        const LOGO_SPEED = 3;
-
-        // --- VARIABLES ---
-        let inactivityTimer;
-        const body = document.body;
         const logo = document.getElementById('bouncing-logo');
         
-        // Animation Variables
-        let x = Math.random() * (window.innerWidth - 200);
-        let y = Math.random() * (window.innerHeight - 150);
-        let speedX = LOGO_SPEED;
-        let speedY = LOGO_SPEED;
-        let isAnimating = false;
-
-        // --- 1. INACTIVITY DETECTOR ---
-        function resetTimer() {
-            // If screensaver is currently active, hide it!
-            if (body.classList.contains('screensaver-active')) {
-                body.classList.remove('screensaver-active');
-                isAnimating = false; // Stop the calculation loop
-            }
-
-            // Clear the existing timer
-            clearTimeout(inactivityTimer);
-
-            // Set a new timer to activate screensaver
-            inactivityTimer = setTimeout(startScreensaver, WAIT_TIME);
-        }
-
-        function startScreensaver() {
-            body.classList.add('screensaver-active');
-            isAnimating = true;
-            requestAnimationFrame(updateLogoPosition); // Start the loop
-        }
-
-        // Listen for user activity to reset the timer
-        window.onload = resetTimer;
-        document.onmousemove = resetTimer;
-        document.onkeypress = resetTimer;
-        document.ontouchstart = resetTimer; // For mobile support
-
-        // --- 2. BOUNCING LOGIC ---
-        function updateLogoPosition() {
-            // If animation was stopped (mouse moved), exit the loop
-            if (!isAnimating) return;
-
+        // --- Configuration ---
+        let x = Math.random() * (window.innerWidth - 200); // Random start X
+        let y = Math.random() * (window.innerHeight - 150); // Random start Y
+        let speedX = 3; // Horizontal Speed (increase to go faster)
+        let speedY = 3; // Vertical Speed
+        
+        // --- Animation Loop ---
+        function update() {
             const logoRect = logo.getBoundingClientRect();
             const winWidth = window.innerWidth;
             const winHeight = window.innerHeight;
@@ -126,47 +45,55 @@
             let hitX = false;
             let hitY = false;
 
-            // Check Walls
+            // Check Horizontal Walls (Left or Right)
             if (x + logoRect.width >= winWidth || x <= 0) {
-                speedX = -speedX;
+                speedX = -speedX; // Reverse direction
                 hitX = true;
             }
+
+            // Check Vertical Walls (Top or Bottom)
             if (y + logoRect.height >= winHeight || y <= 0) {
-                speedY = -speedY;
+                speedY = -speedY; // Reverse direction
                 hitY = true;
             }
 
-            // Update Position
+            // Apply movement
             x += speedX;
             y += speedY;
+
+            // Update CSS to move the element
             logo.style.left = x + 'px';
             logo.style.top = y + 'px';
 
-            // CORNER HIT DETECTION
+            // --- Corner Detection ---
+            // If we hit a horizontal AND vertical wall in the same frame, it's a corner!
             if (hitX && hitY) {
                 triggerConfetti();
             }
 
-            // Loop
-            requestAnimationFrame(updateLogoPosition);
+            // Run this function again on the next frame
+            requestAnimationFrame(update);
         }
 
-        // --- 3. CONFETTI ---
+        // --- Confetti Function ---
         function triggerConfetti() {
+            // Basic blue confetti burst
             confetti({
                 particleCount: 150,
                 spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#00A8E0', '#009FDB', '#FFFFFF']
+                origin: { y: 0.6 }, // Approximate center for the burst visual
+                colors: ['#00A8E0', '#009FDB', '#FFFFFF'] // AT&T Blue shades and White
             });
         }
+
+        // Start the animation
+        update();
         
-        // Handle Resize
+        // Handle window resizing so the logo doesn't get lost
         window.addEventListener('resize', () => {
             x = Math.min(x, window.innerWidth - 200);
             y = Math.min(y, window.innerHeight - 150);
         });
-
     </script>
 </body>
 </html>
