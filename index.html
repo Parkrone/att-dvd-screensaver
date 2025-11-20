@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AT&T DVD Bounce</title>
+    <title>ATT Bouncer</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #000000; /* Black background */
-            overflow: hidden; /* Hides scrollbars */
+            background-color: #000000; /* Pitch black for screensaver */
+            overflow: hidden; /* Crucial: prevents scrollbars */
             height: 100vh;
             width: 100vw;
+            cursor: none; /* Optional: Hides the mouse cursor if visible */
         }
 
         #bouncing-logo {
-            position: absolute; /* Allows us to move it with coordinates */
-            width: 200px; /* You can adjust the size of the logo here */
+            position: absolute;
+            width: 200px; /* Adjust logo size here */
             height: auto;
-            will-change: transform; /* Optimizes performance */
+            will-change: transform, left, top;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -30,13 +31,16 @@
     <script>
         const logo = document.getElementById('bouncing-logo');
         
-        // --- Configuration ---
-        let x = Math.random() * (window.innerWidth - 200); // Random start X
-        let y = Math.random() * (window.innerHeight - 150); // Random start Y
-        let speedX = 3; // Horizontal Speed (increase to go faster)
-        let speedY = 3; // Vertical Speed
+        // --- CONFIGURATION ---
+        // Start at a random position
+        let x = Math.random() * (window.innerWidth - 200); 
+        let y = Math.random() * (window.innerHeight - 150);
         
-        // --- Animation Loop ---
+        // Speed (Try 3, 4, or 5)
+        let speedX = 3; 
+        let speedY = 3; 
+        
+        // --- ANIMATION LOOP ---
         function update() {
             const logoRect = logo.getBoundingClientRect();
             const winWidth = window.innerWidth;
@@ -45,51 +49,48 @@
             let hitX = false;
             let hitY = false;
 
-            // Check Horizontal Walls (Left or Right)
+            // Check Horizontal Walls
             if (x + logoRect.width >= winWidth || x <= 0) {
-                speedX = -speedX; // Reverse direction
+                speedX = -speedX;
                 hitX = true;
             }
 
-            // Check Vertical Walls (Top or Bottom)
+            // Check Vertical Walls
             if (y + logoRect.height >= winHeight || y <= 0) {
-                speedY = -speedY; // Reverse direction
+                speedY = -speedY;
                 hitY = true;
             }
 
-            // Apply movement
+            // Move
             x += speedX;
             y += speedY;
 
-            // Update CSS to move the element
             logo.style.left = x + 'px';
             logo.style.top = y + 'px';
 
-            // --- Corner Detection ---
-            // If we hit a horizontal AND vertical wall in the same frame, it's a corner!
+            // Corner Hit Detection
             if (hitX && hitY) {
                 triggerConfetti();
             }
 
-            // Run this function again on the next frame
             requestAnimationFrame(update);
         }
 
-        // --- Confetti Function ---
+        // --- CONFETTI ---
         function triggerConfetti() {
-            // Basic blue confetti burst
             confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 }, // Approximate center for the burst visual
-                colors: ['#00A8E0', '#009FDB', '#FFFFFF'] // AT&T Blue shades and White
+                particleCount: 200, // Big explosion
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#00A8E0', '#009FDB', '#FFFFFF'], // AT&T Blue & White
+                disableForReducedMotion: true
             });
         }
 
-        // Start the animation
+        // Start immediately
         update();
         
-        // Handle window resizing so the logo doesn't get lost
+        // Recalculate bounds if the resolution changes
         window.addEventListener('resize', () => {
             x = Math.min(x, window.innerWidth - 200);
             y = Math.min(y, window.innerHeight - 150);
