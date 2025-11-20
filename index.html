@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AT&T Screensaver Site</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* 1. Basic Page Styling */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4; /* Light background for the "normal" site */
+            overflow: hidden; 
+        }
+
+        /* 2. The "Normal" Website Content */
+        #main-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 { color: #333; }
+        p { color: #666; }
+
+        /* 3. The Screensaver Overlay (Initially Hidden) */
+        #screensaver-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000; /* Classic Black Screensaver BG */
+            z-index: 9999; /* Sit on top of everything */
+            opacity: 0;
+            pointer-events: none; /* Let clicks pass through when hidden */
+            transition: opacity 0.5s ease; /* Smooth fade in/out */
+        }
+
+        /* 4. The Bouncing Logo */
+        #bouncing-logo {
+            position: absolute;
+            width: 200px; 
+            height: auto;
+            will-change: transform;
+        }
+
+        /* Class to activate the screensaver */
+        body.screensaver-active #screensaver-layer {
+            opacity: 1;
+            pointer-events: all; /* Block clicks to the site below */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-content">
+        <div>
+            <h1>Welcome to My Page</h1>
+            <p>Stop moving your mouse for 3 seconds...</p>
+            <p>(Wait for the AT&T bounce!)</p>
+        </div>
+    </div>
+
+    <div id="screensaver-layer">
+        <img id="bouncing-logo" src="att.gif" alt="AT&T Logo">
+    </div>
+
+    <script>
+        // --- SETTINGS ---
+        const WAIT_TIME = 3000; // 3000ms = 3 seconds before screensaver starts
+        const LOGO_SPEED = 3;
+
+        // --- VARIABLES ---
+        let inactivityTimer;
+        const body = document.body;
+        const logo = document.getElementById('bouncing-logo');
+        
+        // Animation Variables
+        let x = Math.random() * (window.innerWidth - 200);
+        let y = Math.random() * (window.innerHeight - 150);
+        let speedX = LOGO_SPEED;
+        let speedY = LOGO_SPEED;
+        let isAnimating = false;
+
+        // --- 1. INACTIVITY DETECTOR ---
+        function resetTimer() {
+            // If screensaver is currently active, hide it!
+            if (body.classList.contains('screensaver-active')) {
+                body.classList.remove('screensaver-active');
+                isAnimating = false; // Stop the calculation loop
+            }
+
+            // Clear the existing timer
+            clearTimeout(inactivityTimer);
+
+            // Set a new timer to activate screensaver
+            inactivityTimer = setTimeout(startScreensaver, WAIT_TIME);
+        }
+
+        function startScreensaver() {
+            body.classList.add('screensaver-active');
+            isAnimating = true;
+            requestAnimationFrame(updateLogoPosition); // Start the loop
+        }
+
+        // Listen for user activity to reset the timer
+        window.onload = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+        document.ontouchstart = resetTimer; // For mobile support
+
+        // --- 2. BOUNCING LOGIC ---
+        function updateLogoPosition() {
+            // If animation was stopped (mouse moved), exit the loop
+            if (!isAnimating) return;
+
+            const logoRect = logo.getBoundingClientRect();
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+
+            let hitX = false;
+            let hitY = false;
+
+            // Check Walls
+            if (x + logoRect.width >= winWidth || x <= 0) {
+                speedX = -speedX;
+                hitX = true;
+            }
+            if (y + logoRect.height >= winHeight || y <= 0) {
+                speedY = -speedY;
+                hitY = true;
+            }
+
+            // Update Position
+            x += speedX;
+            y += speedY;
+            logo.style.left = x + 'px';
+            logo.style.top = y + 'px';
+
+            // CORNER HIT DETECTION
+            if (hitX && hitY) {
+                triggerConfetti();
+            }
+
+            // Loop
+            requestAnimationFrame(updateLogoPosition);
+        }
+
+        // --- 3. CONFETTI ---
+        function triggerConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#00A8E0', '#009FDB', '#FFFFFF']
+            });
+        }
+        
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            x = Math.min(x, window.innerWidth - 200);
+            y = Math.min(y, window.innerHeight - 150);
+        });
+
+    </script>
+</body>
+</html>
